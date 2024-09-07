@@ -30,7 +30,6 @@ app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body")
 );
 
-
 app.get("/api/persons", (request, response) => {
   Person.find({})
     .then((persons) => {
@@ -79,13 +78,13 @@ app.post("/api/persons", (request, response, next) => {
   let body = request.body;
   body.id = id;
 
-  const existingPerson = persons.find((p) => p.name === body.name);
-
-  if (existingPerson) {
-    return response.status(400).json({ error: "name must be unique" });
-  } else if (body.name === undefined || body.number === undefined) {
-    return response.status(400).json({ error: "content mising" });
-  }
+  Person.findOne({ name: body.name }).then((person) => {
+    if (person) {
+      return response.status(400).json({ error: "name must be unique" });
+    } else if (person.name === undefined || person.number === undefined) {
+      return response.status(400).json({ error: "content mising" });
+    }
+  });
 
   const person = new Person({
     name: body.name,
@@ -98,7 +97,7 @@ app.post("/api/persons", (request, response, next) => {
     .then((savedPerson) => {
       response.json(savedPerson);
     })
-    .catch((error) => (next(error)));
+    .catch((error) => next(error));
 });
 
 app.put("/api/persons/:id", (request, response, next) => {
@@ -117,14 +116,12 @@ app.put("/api/persons/:id", (request, response, next) => {
 
 app.use((error, request, response, next) => {
   console.error(error.message);
+  console.log("AAAAAAAAA", error.name);
 
-  if (error.name === 'ValidationError') {
-    return response.status(400).json({ error: error.message }); 
-  }
+  return response.status(400).json({ error: error.message });
 
   next(error);
 });
-
 
 const PORT = process.env.PORT;
 app.listen(PORT);
