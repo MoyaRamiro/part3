@@ -66,7 +66,7 @@ app.get("/api/persons/:id", (request, response, next) => {
 
 app.delete("/api/persons/:id", (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end();
     })
     .catch((error) => next(error));
@@ -114,13 +114,12 @@ app.put("/api/persons/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.use((error, request, response, next) => {
+app.use((error, request, next, response) => {
   console.error(error.message);
   console.log("AAAAAAAAA", error.name);
 
   return response.status(400).json({ error: error.message });
 
-  next(error);
 });
 
 const PORT = process.env.PORT;
